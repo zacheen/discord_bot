@@ -1,11 +1,13 @@
 # coding:utf-8
 
 import os
+
 os.system("")
 
 from dotenv import load_dotenv
 import discord
 import time
+
 
 #紀錄狀態
 class Memery():
@@ -38,7 +40,11 @@ TOKEN = os.getenv(r'TOKEN')
 print("TOKEN :", TOKEN)
 
 #使用client class
-client = discord.Client()
+intents = discord.Intents.default()
+intents.members = True
+intents.message_content = True
+client = discord.Client(intents=intents)
+# client = discord.Client()
 
 
 #調用event函式庫
