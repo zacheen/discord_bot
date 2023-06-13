@@ -1,4 +1,8 @@
+# coding:utf-8
+
 import os
+os.system("")
+
 from dotenv import load_dotenv
 import discord
 import time
