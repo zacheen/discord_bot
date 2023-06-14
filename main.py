@@ -11,7 +11,6 @@ import time
 
 #紀錄狀態
 class Memery():
-
   def __init__(self):
     self.reset()
 
@@ -20,7 +19,8 @@ class Memery():
     self.sleep_time = 23
     self.good_night = 0
     self.good_night_str = [
-      "超過 " + str(self.sleep_time) + " 點了, 快去睡覺", '妳給我睡覺喔! 😡'
+      "超過 " + str(self.sleep_time) + " 點了, 快去睡覺",
+      '妳給我睡覺喔! 😡'
     ]
 
 
@@ -45,6 +45,7 @@ intents.members = True
 intents.message_content = True
 client = discord.Client(intents=intents)
 # client = discord.Client()
+
 
 
 #調用event函式庫
@@ -76,5 +77,14 @@ async def on_message(message):
       await message.channel.send(mem.good_night_str[mem.good_night])
       mem.good_night += 1
 
+#新成員加入時觸發(尚未驗證)
+@client.event
+async def on_member_join(member):
+  pass
+  # 目前不會用到，因為看到所以先記錄一下
+  # guild = client.get_guild(GUILD_ID)
+    # for channel in guild.channels:
+    #     if channel.name == '一般':#<<記得改"一般"
+    #         await channel.send(f"<@{member.id}> 你好呀:sunglasses:  請輸入你的遊戲ID，管理員看到就會把你加進公會~")
 
 client.run(TOKEN)
