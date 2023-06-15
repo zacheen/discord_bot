@@ -1,8 +1,13 @@
 # coding:utf-8
 
-import os
+# python version 3.10 (python 3.7 無法安裝 discord 2.3.0 版)
+# pip install -U discord.py
+# pip install -U python-dotenv
+# pip install apscheduler
+# pip install Flask
 
-os.system("")
+import os
+# os.system("")
 
 from dotenv import load_dotenv
 import discord
@@ -46,7 +51,8 @@ intents.message_content = True
 client = discord.Client(intents=intents)
 # client = discord.Client()
 
-
+#如果要插入連結(尚未測試)
+embed = discord.Embed()
 
 #調用event函式庫
 @client.event
@@ -64,8 +70,9 @@ async def on_message(message):
   if message.author == client.user:
     return
 
+  # 20230615 有更新 id 要注意
   # if "#2876" in str(message.author) :
-  if "#5670" in str(message.author):
+  if "zacheen" in str(message.author):
     if '不愛你' in message.content:
       await message.channel.send('但是我還很愛你')
     if '分手' in message.content:
