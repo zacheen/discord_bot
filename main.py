@@ -64,7 +64,9 @@ async def on_ready():
 @client.event
 #當有訊息時
 async def on_message(message):
-  print(message.author, message.content)
+  # print(dir(message))
+  print(message.author, message.content, message.created_at)
+  # print(dir(message.created_at))
 
   #排除自己的訊息，避免陷入無限循環
   if message.author == client.user:
@@ -78,7 +80,18 @@ async def on_message(message):
     if '分手' in message.content:
       await message.channel.send('別想了! 反正我是不會答應的!')
 
-    now_hour = time.localtime(time.time()).tm_hour
+    # 取得當下時間 #####################################
+    # <方法1 看觸發的時間>
+    # from datetime import datetime,timezone,timedelta
+    # dt1 = datetime.utcnow().replace(tzinfo=timezone.utc)
+    # dt2 = dt1.astimezone(timezone(timedelta(hours=8))) # 轉換時區: +8 的時區
+    # now_hour = dt2.hour
+    # <方法2 看發文的時間>
+    now_hour = message.created_at.hour
+    ###################################################
+    now_hour += 8 # 轉成台灣時區
+    if now_hour > 24 :
+      now_hour -= 24
     if mem.good_night < len(mem.good_night_str) and (now_hour >= mem.sleep_time
                                                      or now_hour <= 4):
       await message.channel.send(mem.good_night_str[mem.good_night])
