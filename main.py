@@ -94,4 +94,6 @@ async def on_member_join(member):
     #     if channel.name == '一般':#<<記得改"一般"
     #         await channel.send(f"<@{member.id}> 你好呀:sunglasses:  請輸入你的遊戲ID，管理員看到就會把你加進公會~")
 
+import keep_alive
+keep_alive.keep_alive()
 client.run(TOKEN)
