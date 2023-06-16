@@ -24,7 +24,8 @@ class Memery():
     self.sleep_time = 23
     self.good_night = 0
     self.good_night_str = [
-      "超過 " + str(self.sleep_time) + " 點了, 快去睡覺",
+      "超過 " + str(self.sleep_time) + " 點了, 快去睡覺~",
+      "再不睡妳明天又要賴床爬不起來了",
       '妳給我睡覺喔! 😡'
     ]
 
@@ -73,8 +74,8 @@ async def on_message(message):
     return
 
   # 20230615 有更新 id 要注意
-  # if "#2876" in str(message.author) :
-  if "zacheen" in str(message.author):
+  if "Vicky" in str(message.author) :
+  # if "zacheen" in str(message.author):
     if '不愛你' in message.content:
       await message.channel.send('但是我還很愛你')
     if '分手' in message.content:
@@ -96,6 +97,19 @@ async def on_message(message):
                                                      or now_hour <= 4):
       await message.channel.send(mem.good_night_str[mem.good_night])
       mem.good_night += 1
+
+  # 提醒事項
+  if '加入提醒事項:' in message.content:
+    to_add_mess = message.content.replace("加入提醒事項:","").strip()
+    with open(os.getenv(r'REMIND_PATH'), "a") as fw : # append
+      fw.write(to_add_mess+"\n")
+
+  elif '列出提醒事項' in message.content:
+    with open(os.getenv(r'REMIND_PATH')) as fr :
+      full_remind = ""
+      for indx, each_remind in enumerate(fr.readlines()):
+        full_remind += str(indx)+". "+each_remind
+      await message.channel.send(full_remind)
 
 #新成員加入時觸發(尚未驗證)
 @client.event
