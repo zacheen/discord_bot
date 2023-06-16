@@ -103,6 +103,7 @@ async def on_message(message):
     to_add_mess = message.content.replace("加入提醒事項:","").strip()
     with open(os.getenv(r'REMIND_PATH'), "a") as fw : # append
       fw.write(to_add_mess+"\n")
+      await message.channel.send("成功紀錄 : "+to_add_mess)
 
   elif '列出提醒事項' in message.content:
     with open(os.getenv(r'REMIND_PATH')) as fr :
