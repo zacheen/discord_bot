@@ -13,7 +13,31 @@ from dotenv import load_dotenv
 import discord
 import time
 
+#關鍵字
+class Remind():
+  add_rem = '加入提醒事項:'
+  remove_rem = '刪除提醒事項:'
+  list_rem = '列出提醒事項'
 
+  def get_all_rem() :
+    full_remind = ""
+    with open(os.getenv(r'REMIND_PATH'),"r") as fr :
+      for indx, each_remind in enumerate(fr.readlines()):
+        full_remind += str(indx+1)+". "+each_remind # each_remind 結尾已經有換行
+    if full_remind == "" :
+      full_remind = "沒有剩餘代辦事項"
+    return full_remind
+
+  def del_indx(tar_indx) : # indx start : 1
+    remain_remind = ""
+    with open(os.getenv(r'REMIND_PATH')) as fr :
+      for indx, each_remind in enumerate(fr.readlines()):
+        indx += 1
+        if indx == tar_indx : 
+          continue
+        remain_remind += each_remind # each_remind 結尾已經有換行
+    with open(os.getenv(r'REMIND_PATH'),"w") as fw :
+      fw.write(remain_remind)
 #紀錄狀態
 class Memery():
   def __init__(self):
@@ -28,8 +52,6 @@ class Memery():
       "再不睡妳明天又要賴床爬不起來了",
       '妳給我睡覺喔! 😡'
     ]
-
-
 mem = Memery()
 
 # 狀態每天重置
@@ -61,7 +83,6 @@ embed = discord.Embed()
 async def on_ready():
   print('目前登入身份：', client.user)
 
-
 @client.event
 #當有訊息時
 async def on_message(message):
@@ -78,6 +99,8 @@ async def on_message(message):
   # if "zacheen" in str(message.author):
     if '不愛你' in message.content:
       await message.channel.send('但是我還很愛你')
+    elif '愛你' in message.content:
+      await message.channel.send('請當面告訴帥寶貝')
     if '分手' in message.content:
       await message.channel.send('別想了! 反正我是不會答應的!')
 
@@ -99,18 +122,22 @@ async def on_message(message):
       mem.good_night += 1
 
   # 提醒事項
-  if '加入提醒事項:' in message.content:
-    to_add_mess = message.content.replace("加入提醒事項:","").strip()
+  if Remind.add_rem in message.content:
+    to_add_mess = message.content.replace(Remind.add_rem,"").strip()
     with open(os.getenv(r'REMIND_PATH'), "a") as fw : # append
       fw.write(to_add_mess+"\n")
       await message.channel.send("成功紀錄 : "+to_add_mess)
+  elif Remind.remove_rem in message.content:
+    try :
+      to_remove_mess = int(message.content.replace(Remind.remove_rem,"").strip())
+      Remind.del_indx(to_remove_mess)
+      await message.channel.send("刪除結果 :\n" + Remind.get_all_rem())
 
-  elif '列出提醒事項' in message.content:
-    with open(os.getenv(r'REMIND_PATH')) as fr :
-      full_remind = ""
-      for indx, each_remind in enumerate(fr.readlines()):
-        full_remind += str(indx)+". "+each_remind
-      await message.channel.send(full_remind)
+    except :
+      await message.channel.send("移除失敗")
+  elif Remind.list_rem in message.content:
+    await message.channel.send(Remind.get_all_rem())
+
 
 #新成員加入時觸發(尚未驗證)
 @client.event
