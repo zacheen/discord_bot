@@ -51,9 +51,10 @@ class Memery():
 
   def reset(self):
     print("reset")
-    self.sleep_time = 23
+    self.sleep_time = 24
     self.good_night = 0
     self.good_night_str = [
+      '很晚了，去睡覺，晚安~'
       "超過 " + str(self.sleep_time) + " 點了, 快去睡覺~",
       "再不睡妳明天又要賴床爬不起來了",
       '妳給我睡覺喔! 😡'
