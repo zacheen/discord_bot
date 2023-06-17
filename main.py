@@ -18,7 +18,13 @@ class Remind():
   add_rem = '加入提醒事項:'
   remove_rem = '刪除提醒事項:'
   list_rem = '列出提醒事項'
+  all_command = [add_rem, remove_rem, list_rem, ]
 
+  def get_help():
+    help_str = "目前共有"+str(len(Remind.all_command))+"種指令\n    "
+    help_str += "\n    ".join(Remind.all_command)
+    return help_str
+  
   def get_all_rem() :
     full_remind = ""
     with open(os.getenv(r'REMIND_PATH'),"r") as fr :
@@ -132,11 +138,13 @@ async def on_message(message):
       to_remove_mess = int(message.content.replace(Remind.remove_rem,"").strip())
       Remind.del_indx(to_remove_mess)
       await message.channel.send("刪除結果 :\n" + Remind.get_all_rem())
-
     except :
       await message.channel.send("移除失敗")
   elif Remind.list_rem in message.content:
     await message.channel.send(Remind.get_all_rem())
+  
+  if "help" == message.content :
+    await message.channel.send(Remind.get_help())
 
 
 #新成員加入時觸發(尚未驗證)
