@@ -28,8 +28,8 @@ class Remind():
   def get_all_rem() :
     full_remind = ""
     with open(os.getenv(r'REMIND_PATH'),"r") as fr :
-      for indx, each_remind in enumerate(fr.readlines()):
-        full_remind += str(indx+1)+". "+each_remind # each_remind 結尾已經有換行
+      for indx, each_remind in enumerate(fr.readlines(), 1):
+        full_remind += str(indx)+". "+each_remind # each_remind 結尾已經有換行
     if full_remind == "" :
       full_remind = "沒有剩餘代辦事項"
     return full_remind
@@ -37,8 +37,7 @@ class Remind():
   def del_indx(tar_indx) : # indx start : 1
     remain_remind = ""
     with open(os.getenv(r'REMIND_PATH')) as fr :
-      for indx, each_remind in enumerate(fr.readlines()):
-        indx += 1
+      for indx, each_remind in enumerate(fr.readlines(), 1):
         if indx == tar_indx : 
           continue
         remain_remind += each_remind # each_remind 結尾已經有換行
