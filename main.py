@@ -6,43 +6,76 @@
 # pip install apscheduler
 # pip install Flask
 
+from glob import glob
 import os
 # os.system("")
 
 from dotenv import load_dotenv
+# 讀取設定
+load_dotenv(r"./settings/.env")
+
 import discord
 import time
 
 #關鍵字
+try :
+  os.mkdir(os.getenv(r'REMIND_DIR'))
+except FileExistsError :
+  pass
 class Remind():
   add_rem = '加入提醒事項:'
   remove_rem = '刪除提醒事項:'
   list_rem = '列出提醒事項'
-  all_command = [add_rem, remove_rem, list_rem, ]
+  list_all_rem = '列出全部提醒事項'
+  all_command = [add_rem, remove_rem, list_rem, list_all_rem,]
+  find_all_file_pattern = os.getenv(r'REMIND_PATH').replace(".txt", "*.txt")
 
   def get_help():
     help_str = "目前共有"+str(len(Remind.all_command))+"種指令\n    "
     help_str += "\n    ".join(Remind.all_command)
     return help_str
-  
+
   def get_all_rem() :
     full_remind = ""
-    with open(os.getenv(r'REMIND_PATH'),"r") as fr :
-      for indx, each_remind in enumerate(fr.readlines(), 1):
-        full_remind += str(indx)+". "+each_remind # each_remind 結尾已經有換行
+    indx = 1
+    for each_remind in glob(Remind.find_all_file_pattern) :
+      try :
+        with open(each_remind,"r") as fr :
+          for each_remind in fr.readlines():
+            full_remind += str(indx)+". "+each_remind # each_remind 結尾已經有換行
+            indx += 1
+      except FileNotFoundError :
+        pass
     if full_remind == "" :
-      full_remind = "沒有剩餘代辦事項"
+      full_remind = "沒有剩餘提醒事項"
     return full_remind
 
-  def del_indx(tar_indx) : # indx start : 1
+  def get_rem(channel) :
+    full_remind = ""
+    remind_path = os.getenv(r'REMIND_PATH').replace(".txt", str(channel.id)+".txt")
+    try :
+      with open(remind_path,"r") as fr :
+        for indx, each_remind in enumerate(fr.readlines(), 1):
+          full_remind += str(indx)+". "+each_remind # each_remind 結尾已經有換行
+    except FileNotFoundError :
+      full_remind = "之前尚未建立過提醒事項"
+    if full_remind == "" :
+      full_remind = "沒有剩餘提醒事項"
+    return full_remind
+
+  # def add_item(channel, item) :
+
+  def del_indx(channel, tar_indx) : # indx start : 1
     remain_remind = ""
-    with open(os.getenv(r'REMIND_PATH')) as fr :
+    remind_path = os.getenv(r'REMIND_PATH').replace(".txt", str(channel.id)+".txt")
+    with open(remind_path) as fr :
       for indx, each_remind in enumerate(fr.readlines(), 1):
         if indx == tar_indx : 
           continue
         remain_remind += each_remind # each_remind 結尾已經有換行
-    with open(os.getenv(r'REMIND_PATH'),"w") as fw :
+    with open(remind_path,"w") as fw :
       fw.write(remain_remind)
+
 #紀錄狀態
 class Memery():
   def __init__(self):
@@ -65,13 +98,8 @@ from apscheduler.schedulers.background import BackgroundScheduler
 
 scheduler = BackgroundScheduler(timezone="Asia/Taipei")
 # schedule.every().day.at("04:00").do(mem.reset)
-scheduler.add_job(mem.reset, 'cron', day_of_week='0-4', hour=4, minute=0)
+scheduler.add_job(mem.reset, 'cron', day_of_week='0-3', hour=4, minute=0) # 只有禮拜一到四
 scheduler.start()
-
-# 讀取設定
-load_dotenv(r"./settings/.env")
-TOKEN = os.getenv(r'TOKEN')
-print("TOKEN :", TOKEN)
 
 #使用client class
 intents = discord.Intents.default()
@@ -94,7 +122,8 @@ async def on_ready():
 async def on_message(message):
   # print(dir(message))
   print(message.author, message.content, message.created_at)
-  # print(dir(message.created_at))
+  # print(dir(message.channel))
+  # print(message.channel.id)
 
   #排除自己的訊息，避免陷入無限循環
   if message.author == client.user:
@@ -130,19 +159,20 @@ async def on_message(message):
   # 提醒事項
   if Remind.add_rem in message.content:
     to_add_mess = message.content.replace(Remind.add_rem,"").strip()
-    with open(os.getenv(r'REMIND_PATH'), "a") as fw : # append
+    with open(os.getenv(r'REMIND_PATH').replace(".txt", str(message.channel.id)+".txt"), "a") as fw : # append
       fw.write(to_add_mess+"\n")
       await message.channel.send("成功紀錄 : "+to_add_mess)
   elif Remind.remove_rem in message.content:
     try :
       to_remove_mess = int(message.content.replace(Remind.remove_rem,"").strip())
-      Remind.del_indx(to_remove_mess)
-      await message.channel.send("刪除結果 :\n" + Remind.get_all_rem())
+      Remind.del_indx(message.channel, to_remove_mess)
+      await message.channel.send("刪除結果 :\n" + Remind.get_rem(message.channel))
     except :
       await message.channel.send("移除失敗")
   elif Remind.list_rem in message.content:
+    await message.channel.send(Remind.get_rem(message.channel))
+  elif Remind.list_all_rem in message.content:
     await message.channel.send(Remind.get_all_rem())
-  
   if "help" == message.content :
     await message.channel.send(Remind.get_help())
 
@@ -157,6 +187,8 @@ async def on_member_join(member):
     #     if channel.name == '一般':#<<記得改"一般"
     #         await channel.send(f"<@{member.id}> 你好呀:sunglasses:  請輸入你的遊戲ID，管理員看到就會把你加進公會~")
 
+TOKEN = os.getenv(r'TOKEN')
+print("TOKEN :", TOKEN)
 import keep_alive
 keep_alive.keep_alive()
 client.run(TOKEN)
