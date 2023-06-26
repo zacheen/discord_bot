@@ -13,6 +13,8 @@ import os
 from dotenv import load_dotenv
 # 讀取設定
 load_dotenv(r"./settings/.env")
+MY_DISCORD_ID = os.getenv(r'MY_DISCORD_ID')
+print("MY_DISCORD_ID :", MY_DISCORD_ID)
 
 import discord
 import time
@@ -132,7 +134,7 @@ async def on_message(message):
     return
 
   # 20230615 有更新 id 要注意
-  if "Vicky" in str(message.author) :
+  if MY_DISCORD_ID not in str(message.author) :
   # if "zacheen" in str(message.author):
     if '不愛你' in message.content:
       await message.channel.send('但是我還很愛你')
@@ -153,8 +155,8 @@ async def on_message(message):
     now_hour += 8 # 轉成台灣時區
     if now_hour > 24 :
       now_hour -= 24
-    if mem.good_night < len(mem.good_night_str) and (now_hour >= mem.sleep_time
-                                                     or now_hour <= 4):
+    if mem.good_night < len(mem.good_night_str) and \
+        (now_hour >= mem.sleep_time or now_hour <= 4):
       await message.channel.send(mem.good_night_str[mem.good_night])
       mem.good_night += 1
 
@@ -165,7 +167,7 @@ async def on_message(message):
       Remind.add_item(message.channel, to_add_mess)
       await message.channel.send("成功紀錄 : "+to_add_mess)
     except :
-      await message.channel.send("成功失敗")
+      await message.channel.send("加入失敗")
   elif Remind.remove_rem in message.content:
     try :
       to_remove_mess = int(message.content.replace(Remind.remove_rem,"").strip())
