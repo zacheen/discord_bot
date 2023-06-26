@@ -63,7 +63,9 @@ class Remind():
       full_remind = "沒有剩餘提醒事項"
     return full_remind
 
-  # def add_item(channel, item) :
+  def add_item(channel, item) :
+    with open(os.getenv(r'REMIND_PATH').replace(".txt", str(channel.id)+".txt"), "a") as fw : # append
+      fw.write(item+"\n")
 
   def del_indx(channel, tar_indx) : # indx start : 1
     remain_remind = ""
@@ -158,10 +160,12 @@ async def on_message(message):
 
   # 提醒事項
   if Remind.add_rem in message.content:
-    to_add_mess = message.content.replace(Remind.add_rem,"").strip()
-    with open(os.getenv(r'REMIND_PATH').replace(".txt", str(message.channel.id)+".txt"), "a") as fw : # append
-      fw.write(to_add_mess+"\n")
+    try :
+      to_add_mess = message.content.replace(Remind.add_rem,"").strip()
+      Remind.add_item(message.channel, to_add_mess)
       await message.channel.send("成功紀錄 : "+to_add_mess)
+    except :
+      await message.channel.send("成功失敗")
   elif Remind.remove_rem in message.content:
     try :
       to_remove_mess = int(message.content.replace(Remind.remove_rem,"").strip())
