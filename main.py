@@ -6,6 +6,7 @@
 # pip install apscheduler
 # pip install Flask
 
+import json
 from glob import glob
 import os
 # os.system("")
@@ -37,14 +38,33 @@ class Remind():
     help_str += "\n    ".join(Remind.all_command)
     return help_str
 
+  chan_name_key = "channel_name"
+  remind_list_key = "remind_list"
+
+  def read_info(channel) : 
+    remind_path = os.getenv(r'REMIND_PATH').replace(".txt", str(channel.id)+".txt")
+    with open(remind_path, encoding='UTF-8') as fr:
+      info = json.load(fr)
+      return info
+    raise Exception
+
+  def write_info(channel, info) :
+    remind_path = os.getenv(r'REMIND_PATH').replace(".txt", str(channel.id)+".txt")
+    with open(remind_path, "w") as fw :
+      json.dump(info, fw, indent = 4)
+      return
+    raise Exception
+
   def get_all_rem() :
     full_remind = ""
     indx = 1
-    for each_remind in glob(Remind.find_all_file_pattern) :
+    for each_file in glob(Remind.find_all_file_pattern) :
       try :
-        with open(each_remind,"r") as fr :
-          for each_remind in fr.readlines():
-            full_remind += str(indx)+". "+each_remind # each_remind 結尾已經有換行
+        with open(each_file, encoding='UTF-8') as fr:
+          info = json.load(fr)
+          for each_remind in info[Remind.remind_list_key]:
+            full_remind += str(indx)+". "+each_remind + \
+              " , 位於 : "+ info[Remind.chan_name_key] +"\n"
             indx += 1
       except FileNotFoundError :
         pass
@@ -54,11 +74,10 @@ class Remind():
 
   def get_rem(channel) :
     full_remind = ""
-    remind_path = os.getenv(r'REMIND_PATH').replace(".txt", str(channel.id)+".txt")
     try :
-      with open(remind_path,"r") as fr :
-        for indx, each_remind in enumerate(fr.readlines(), 1):
-          full_remind += str(indx)+". "+each_remind # each_remind 結尾已經有換行
+      info = Remind.read_info(channel)
+      for indx, each_remind in enumerate(info[Remind.remind_list_key], 1) :
+        full_remind += str(indx)+". " + each_remind + "\n"
     except FileNotFoundError :
       full_remind = "之前尚未建立過提醒事項"
     if full_remind == "" :
@@ -66,19 +85,23 @@ class Remind():
     return full_remind
 
   def add_item(channel, item) :
-    with open(os.getenv(r'REMIND_PATH').replace(".txt", str(channel.id)+".txt"), "a") as fw : # append
-      fw.write(item+"\n")
+    remind_path = os.getenv(r'REMIND_PATH').replace(".txt", str(channel.id)+".txt")
+    if os.path.isfile(remind_path) : 
+      info = Remind.read_info(channel)
+    else :
+      info = {
+        Remind.chan_name_key : channel.name, 
+        Remind.remind_list_key : []
+      }
+
+    info[Remind.remind_list_key].append(item)
+    Remind.write_info(channel, info)
 
   def del_indx(channel, tar_indx) : # indx start : 1
-    remain_remind = ""
-    remind_path = os.getenv(r'REMIND_PATH').replace(".txt", str(channel.id)+".txt")
-    with open(remind_path) as fr :
-      for indx, each_remind in enumerate(fr.readlines(), 1):
-        if indx == tar_indx : 
-          continue
-        remain_remind += each_remind # each_remind 結尾已經有換行
-    with open(remind_path,"w") as fw :
-      fw.write(remain_remind)
+    info = Remind.read_info(channel)
+    del(info[Remind.remind_list_key][tar_indx-1])
+    Remind.write_info(channel,info)
+    
 
 #紀錄狀態
 class Memery():
