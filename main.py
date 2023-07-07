@@ -5,6 +5,7 @@
 # pip install -U python-dotenv
 # pip install apscheduler
 # pip install Flask
+# pip install pytz
 
 import json
 from glob import glob
@@ -19,6 +20,8 @@ print("MY_DISCORD_ID :", MY_DISCORD_ID)
 
 import discord
 import time
+from datetime import datetime
+import pytz
 
 #關鍵字
 try :
@@ -166,18 +169,8 @@ async def on_message(message):
     if '分手' in message.content:
       await message.channel.send('別想了! 反正我是不會答應的!')
 
-    # 取得當下時間 #####################################
-    # <方法1 看觸發的時間>
-    # from datetime import datetime,timezone,timedelta
-    # dt1 = datetime.utcnow().replace(tzinfo=timezone.utc)
-    # dt2 = dt1.astimezone(timezone(timedelta(hours=8))) # 轉換時區: +8 的時區
-    # now_hour = dt2.hour
-    # <方法2 看發文的時間>
-    now_hour = message.created_at.hour
-    ###################################################
-    now_hour += 8 # 轉成台灣時區
-    if now_hour > 24 :
-      now_hour -= 24
+    baby_time = datetime.now(pytz.timezone("America/Los_Angeles"))
+    now_hour = baby_time.hour
     if mem.good_night < len(mem.good_night_str) and \
         (now_hour >= mem.sleep_time or now_hour <= 4):
       await message.channel.send(mem.good_night_str[mem.good_night])
