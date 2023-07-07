@@ -18,6 +18,10 @@ load_dotenv(r"./settings/.env")
 MY_DISCORD_ID = os.getenv(r'MY_DISCORD_ID')
 print("MY_DISCORD_ID :", MY_DISCORD_ID)
 
+# testing settings
+is_testing = os.getenv(r'TESTING') != None
+print("is_testing :",is_testing)
+
 import discord
 import time
 from datetime import datetime
@@ -160,7 +164,7 @@ async def on_message(message):
     return
 
   # 20230615 有更新 id 要注意
-  if MY_DISCORD_ID not in str(message.author) :
+  if is_testing or MY_DISCORD_ID not in str(message.author) :
   # if "zacheen" in str(message.author):
     if '不愛你' in message.content:
       await message.channel.send('但是我還很愛你')
