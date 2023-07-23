@@ -118,6 +118,7 @@ class Memery():
   def reset(self):
     print("reset")
     self.sleep_time = 24
+    self.skip_day = [5,6]
     self.good_night = 0
     self.good_night_str = [
       '很晚了，去睡覺，晚安~'
@@ -130,9 +131,9 @@ mem = Memery()
 # 狀態每天重置
 from apscheduler.schedulers.background import BackgroundScheduler
 
-scheduler = BackgroundScheduler(timezone="Asia/Taipei")
-# schedule.every().day.at("04:00").do(mem.reset)
-scheduler.add_job(mem.reset, 'cron', day_of_week='0-3', hour=4, minute=0) # 只有禮拜一到四
+scheduler = BackgroundScheduler(timezone="America/Los_Angeles")
+# scheduler.add_job(mem.reset, 'cron', day_of_week='0-3', hour=4, minute=0) # 只有禮拜一到四
+scheduler.add_job(mem.reset, 'cron', hour=4, minute=0) # 每天執行
 scheduler.start()
 
 #使用client class
@@ -176,7 +177,8 @@ async def on_message(message):
     baby_time = datetime.now(pytz.timezone("America/Los_Angeles"))
     now_hour = baby_time.hour
     if mem.good_night < len(mem.good_night_str) and \
-        (now_hour >= mem.sleep_time or now_hour <= 4):
+        (now_hour >= mem.sleep_time or now_hour <= 4) and \
+        not (baby_time.weekday() in mem.skip_day) : # 排除日期
       await message.channel.send(mem.good_night_str[mem.good_night])
       mem.good_night += 1
 
