@@ -126,6 +126,12 @@ class Memery():
       "再不睡妳明天又要賴床爬不起來了",
       '妳給我睡覺喔! 😡'
     ]
+
+    # 交往紀念日
+    anniversary = datetime.strptime("2023 03 08 20:00:00", "%Y %m %d %H:%M:%S")  # 這個日期格式不要加上時區
+    anniversary_days = (datetime.now() - anniversary).days + 1
+    print(anniversary_days,"days")
+    
 mem = Memery()
 
 # 狀態每天重置
