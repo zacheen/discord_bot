@@ -24,6 +24,7 @@ print("is_testing :",is_testing)
 
 import discord
 import time
+import datetime as datetimeLib
 from datetime import datetime
 import pytz
 
@@ -110,12 +111,17 @@ class Remind():
     Remind.write_info(channel,info)
     
 
+from discord.ext import tasks
 #紀錄狀態
 class Memery():
+  # reset_time = datetimeLib.time(hour=8, minute=30, tzinfo=pytz.timezone("America/Los_Angeles"))
+  reset_time = datetimeLib.time(hour=21, minute=58, tzinfo=pytz.timezone("Asia/Taipei"))
   def __init__(self):
-    self.reset()
+    pass
 
-  def reset(self):
+  # @tasks.loop(time = reset_time) # 目前會跳錯
+  @tasks.loop(seconds=5.0)
+  async def reset(self):
     print("reset")
     self.sleep_time = 24
     self.skip_day = [5,6]
@@ -128,19 +134,16 @@ class Memery():
     ]
 
     # 交往紀念日
-    anniversary = datetime.strptime("2023 03 08 20:00:00", "%Y %m %d %H:%M:%S")  # 這個日期格式不要加上時區
-    anniversary_days = (datetime.now() - anniversary).days + 1
+    anniversary = datetime.strptime("2023 03 08 20:00:00 +0800", "%Y %m %d %H:%M:%S %z")  # 這個日期格式不要加上時區
+    anniversary_days = (datetime.now(pytz.timezone("Asia/Taipei")) - anniversary).days + 1
     print(anniversary_days,"days")
-    
-mem = Memery()
 
-# 狀態每天重置
-from apscheduler.schedulers.background import BackgroundScheduler
+    await send_message()
+    print("reset finish")
 
-scheduler = BackgroundScheduler(timezone="America/Los_Angeles")
-# scheduler.add_job(mem.reset, 'cron', day_of_week='0-3', hour=4, minute=0) # 只有禮拜一到四
-scheduler.add_job(mem.reset, 'cron', hour=4, minute=0) # 每天執行
-scheduler.start()
+async def send_message(message = "test", channel_id = 1122539631443972246):
+  to_send_chan = client.get_channel(channel_id)
+  await to_send_chan.send(message)
 
 #使用client class
 intents = discord.Intents.default()
@@ -157,6 +160,9 @@ embed = discord.Embed()
 #當機器人完成啟動時
 async def on_ready():
   print('目前登入身份：', client.user)
+  global mem
+  mem = Memery()
+  mem.reset.start()
 
 @client.event
 #當有訊息時
@@ -226,3 +232,4 @@ print("TOKEN :", TOKEN)
 import keep_alive
 keep_alive.keep_alive()
 client.run(TOKEN)
+print("client offline")
