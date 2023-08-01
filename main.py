@@ -229,7 +229,7 @@ async def on_member_join(member):
 
 TOKEN = os.getenv(r'TOKEN')
 print("TOKEN :", TOKEN)
-import keep_alive
-keep_alive.keep_alive()
+# import keep_alive
+# keep_alive.keep_alive()
 client.run(TOKEN)
 print("client offline")
