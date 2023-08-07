@@ -111,16 +111,20 @@ class Remind():
     Remind.write_info(channel,info)
     
 
-from discord.ext import tasks
+from discord.ext import commands, tasks
 #紀錄狀態
-class Memery():
-  # reset_time = datetimeLib.time(hour=8, minute=30, tzinfo=pytz.timezone("America/Los_Angeles"))
-  reset_time = datetimeLib.time(hour=21, minute=58, tzinfo=pytz.timezone("Asia/Taipei"))
+class Memery(commands.Cog):
+  reset_time = datetimeLib.time(hour=1, minute=22, tzinfo=datetimeLib.timezone.utc) # 不能用 pytz 的 timezone 會跳 WARNING !!
   def __init__(self):
+    self.reset.start()
     pass
 
-  # @tasks.loop(time = reset_time) # 目前會跳錯
-  @tasks.loop(seconds=5.0)
+  def cog_unload(self):
+    print("execute cog_unload !!!!!!!!!!")
+    self.reset.cancel()
+
+  # @tasks.loop(seconds=5.0) # 要記得 start 才會開始 loop
+  @tasks.loop(time = reset_time)
   async def reset(self):
     print("reset")
     self.sleep_time = 24
@@ -162,7 +166,7 @@ async def on_ready():
   print('目前登入身份：', client.user)
   global mem
   mem = Memery()
-  mem.reset.start()
+  await mem.reset()
 
 @client.event
 #當有訊息時
