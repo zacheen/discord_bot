@@ -7,6 +7,7 @@
 # pip install Flask
 # pip install pytz
 
+import random
 import json
 from glob import glob
 import os
@@ -17,6 +18,7 @@ from dotenv import load_dotenv
 load_dotenv(r"./settings/.env")
 MY_DISCORD_ID = os.getenv(r'MY_DISCORD_ID')
 print("MY_DISCORD_ID :", MY_DISCORD_ID)
+DEFAULT_CHANNEL = int(os.getenv(r'DEFAULT_CHANNEL'))
 
 # testing settings
 is_testing = os.getenv(r'TESTING') != None
@@ -114,8 +116,16 @@ class Remind():
 from discord.ext import commands, tasks
 #紀錄狀態
 class Memery(commands.Cog):
-  reset_time = datetimeLib.time(hour=1, minute=22, tzinfo=datetimeLib.timezone.utc) # 不能用 pytz 的 timezone 會跳 WARNING !!
+  reset_time = datetimeLib.time(hour=10, minute=22, tzinfo=datetimeLib.timezone.utc) # 不能用 pytz 的 timezone 會跳 WARNING !!
   def __init__(self):
+    self.sleep_time = 24
+    self.skip_day = [5,6]
+    self.good_night_str = [
+      '很晚了，去睡覺，晚安~'
+      "超過 " + str(self.sleep_time) + " 點了, 快去睡覺~",
+      "再不睡妳明天又要賴床爬不起來了",
+      '妳給我睡覺喔! 😡'
+    ]
     self.reset.start()
     pass
 
@@ -127,27 +137,41 @@ class Memery(commands.Cog):
   @tasks.loop(time = reset_time)
   async def reset(self):
     print("reset")
-    self.sleep_time = 24
-    self.skip_day = [5,6]
     self.good_night = 0
-    self.good_night_str = [
-      '很晚了，去睡覺，晚安~'
-      "超過 " + str(self.sleep_time) + " 點了, 快去睡覺~",
-      "再不睡妳明天又要賴床爬不起來了",
-      '妳給我睡覺喔! 😡'
-    ]
 
     # 交往紀念日
     anniversary = datetime.strptime("2023 03 08 20:00:00 +0800", "%Y %m %d %H:%M:%S %z")  # 這個日期格式不要加上時區
     anniversary_days = (datetime.now(pytz.timezone("Asia/Taipei")) - anniversary).days + 1
-    print(anniversary_days,"days")
-
-    await send_message()
+    await send_anniversary(anniversary_days)
     print("reset finish")
 
-async def send_message(message = "test", channel_id = 1122539631443972246):
+async def send_message(message = "test", channel_id = DEFAULT_CHANNEL):
   to_send_chan = client.get_channel(channel_id)
   await to_send_chan.send(message)
+
+normal_congrat = [
+                  "今天是第 @@ 天交往，寶貝我愛妳~🥰",
+                  "今天是第 @@ 天交往，寶貝我愛妳~💕",
+                  "今天是第 @@ 天交往，我知道妳很想我，但還是要乖乖準時去睡覺喔",
+                  "今天是第 @@ 天交往，誰說一定要是特別的天數才能慶祝",
+                  "今天是第 @@ 天交往，快去跟寶貝討親親獎勵",
+                  "今天是第 @@ 天交往，如果從親嘴那天開始計算還更多天喔😏",
+                  ]
+special_congrat = [
+                  "今天是第 @@ 天交往了，不跟寶貝聊聊天嗎?",
+                  # "今天是第 @@ 天交往了，還不生個小孩嗎?", 
+                  #  "今天是第 @@ 天交往了，不去床上壞壞一下嗎😘?", 
+                   ]
+near_hundred = []
+hundred_congrat = ["恭喜! 已經突破 @@ 天了!"]
+async def send_anniversary(anniversary_days):
+  if (anniversary_days % 100) == 0 :
+    await send_message(random.choice(hundred_congrat).replace("@@", str(anniversary_days)))
+  elif (random.randint(1,20) == 1):
+    await send_message(random.choice(special_congrat).replace("@@", str(anniversary_days)))
+  else :
+    await send_message(random.choice(normal_congrat).replace("@@", str(anniversary_days)))
+
 
 #使用client class
 intents = discord.Intents.default()
@@ -166,7 +190,8 @@ async def on_ready():
   print('目前登入身份：', client.user)
   global mem
   mem = Memery()
-  await mem.reset()
+  if is_testing : 
+    await mem.reset()
 
 @client.event
 #當有訊息時
