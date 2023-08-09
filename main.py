@@ -116,7 +116,7 @@ class Remind():
 from discord.ext import commands, tasks
 #紀錄狀態
 class Memery(commands.Cog):
-  reset_time = datetimeLib.time(hour=10, minute=22, tzinfo=datetimeLib.timezone.utc) # 不能用 pytz 的 timezone 會跳 WARNING !!
+  reset_time = datetimeLib.time(hour=1, minute=22, tzinfo=datetimeLib.timezone.utc) # 不能用 pytz 的 timezone 會跳 WARNING !!
   def __init__(self):
     self.sleep_time = 24
     self.skip_day = [5,6]
@@ -153,6 +153,7 @@ normal_congrat = [
                   "今天是第 @@ 天交往，寶貝我愛妳~🥰",
                   "今天是第 @@ 天交往，寶貝我愛妳~💕",
                   "今天是第 @@ 天交往，我知道妳很想我，但還是要乖乖準時去睡覺喔",
+                  "今天是第 @@ 天交往，再撐一下，我一定會過去找妳的!",
                   "今天是第 @@ 天交往，誰說一定要是特別的天數才能慶祝",
                   "今天是第 @@ 天交往，快去跟寶貝討親親獎勵",
                   "今天是第 @@ 天交往，如果從親嘴那天開始計算還更多天喔😏",
