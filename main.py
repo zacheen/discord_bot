@@ -7,6 +7,17 @@
 # pip install Flask
 # pip install pytz
 
+import discord
+# 一些常用 function 整理
+# < 訊息相關 >
+  # 發送訊息 : Channel.send()
+  # 回復訊息 : Message.reply()
+
+import time
+import datetime as datetimeLib
+from datetime import datetime
+import pytz
+
 import random
 import json
 from glob import glob
@@ -19,16 +30,11 @@ load_dotenv(r"./settings/.env")
 MY_DISCORD_ID = os.getenv(r'MY_DISCORD_ID')
 print("MY_DISCORD_ID :", MY_DISCORD_ID)
 DEFAULT_CHANNEL = int(os.getenv(r'DEFAULT_CHANNEL'))
+print("DEFAULT_CHANNEL :", DEFAULT_CHANNEL)
 
 # testing settings
 is_testing = os.getenv(r'TESTING') != None
 print("is_testing :",is_testing)
-
-import discord
-import time
-import datetime as datetimeLib
-from datetime import datetime
-import pytz
 
 #關鍵字
 try :
@@ -155,7 +161,7 @@ normal_congrat = [
                   "今天是第 @@ 天交往，寶貝相信自己! 不相信自己就是不相信我的眼光",
                   "今天是第 @@ 天交往，我知道妳很想我，但還是要乖乖準時去睡覺喔",
                   "今天是第 @@ 天交往，再撐一下，我一定會過去找妳的!",
-                  "今天是第 @@ 天交往，誰說一定要是特別的天數才能慶祝",
+                  "今天是第 @@ 天交往，誰說一定要是特別的天數才能慶祝~",
                   "今天是第 @@ 天交往，快去跟寶貝討親親獎勵",
                   "今天是第 @@ 天交往，如果從親嘴那天開始計算還更多天喔😏",
                   ]
@@ -230,22 +236,22 @@ async def on_message(message):
     try :
       to_add_mess = message.content.replace(Remind.add_rem,"").strip()
       Remind.add_item(message.channel, to_add_mess)
-      await message.channel.send("成功紀錄 : "+to_add_mess)
+      await message.reply("成功紀錄 : "+to_add_mess)
     except :
-      await message.channel.send("加入失敗")
+      await message.reply("加入失敗")
   elif Remind.remove_rem in message.content:
     try :
       to_remove_mess = int(message.content.replace(Remind.remove_rem,"").strip())
       Remind.del_indx(message.channel, to_remove_mess)
-      await message.channel.send("刪除結果 :\n" + Remind.get_rem(message.channel))
+      await message.reply("刪除結果 :\n" + Remind.get_rem(message.channel))
     except :
-      await message.channel.send("移除失敗")
+      await message.reply("移除失敗")
   elif Remind.list_rem in message.content:
-    await message.channel.send(Remind.get_rem(message.channel))
+    await message.reply(Remind.get_rem(message.channel))
   elif Remind.list_all_rem in message.content:
-    await message.channel.send(Remind.get_all_rem())
+    await message.reply(Remind.get_all_rem())
   if "help" == message.content :
-    await message.channel.send(Remind.get_help())
+    await message.reply(Remind.get_help())
 
 
 #新成員加入時觸發(尚未驗證)
