@@ -6,18 +6,26 @@
 # pip install apscheduler
 # pip install Flask
 # pip install pytz
+# pip install requests
+# pip install beautifulsoup4
 
 import discord
 # 一些常用 function 整理
 # < 訊息相關 >
   # 發送訊息 : Channel.send()
   # 回復訊息 : Message.reply()
+  # < 回覆內容 >
+    # 嵌入訊息 : discord.Embed(description="", url=)
+      # 主要用於回覆一大堆的文字，並且可附圖
+    # 傳送檔案 : discord.File()
+
 
 import time
 import datetime as datetimeLib
 from datetime import datetime
 import pytz
-
+import requests
+from bs4 import BeautifulSoup
 import random
 import json
 from glob import glob
@@ -31,6 +39,7 @@ MY_DISCORD_ID = os.getenv(r'MY_DISCORD_ID')
 print("MY_DISCORD_ID :", MY_DISCORD_ID)
 DEFAULT_CHANNEL = int(os.getenv(r'DEFAULT_CHANNEL'))
 print("DEFAULT_CHANNEL :", DEFAULT_CHANNEL)
+drive_pic_url = os.getenv(r'GOOGLE_DRIVE_PIC_URL')
 
 # testing settings
 is_testing = os.getenv(r'TESTING') != None
@@ -149,11 +158,52 @@ class Memery(commands.Cog):
     anniversary = datetime.strptime("2023 03 08 20:00:00 +0800", "%Y %m %d %H:%M:%S %z")  # 這個日期格式不要加上時區
     anniversary_days = (datetime.now(pytz.timezone("Asia/Taipei")) - anniversary).days + 1
     await send_anniversary(anniversary_days)
+    await send_drive_image()
     print("reset finish")
 
 async def send_message(message = "test", channel_id = DEFAULT_CHANNEL):
   to_send_chan = client.get_channel(channel_id)
   await to_send_chan.send(message)
+
+async def send_embed(url, message, channel_id = DEFAULT_CHANNEL):
+  to_send_chan = client.get_channel(channel_id)
+  em = discord.Embed(description = message, url = url)
+  # em.set_image(url = url)
+  # em.set_thumbnail(url = url)
+  if message == "":
+    em.description = "Embed"
+  await to_send_chan.send(embed = em)
+
+# 隨機一張 google drive 裡面的圖片
+def get_random_pic_id() :
+  all_pic_id = []
+  web = requests.get(drive_pic_url)                        # 取得網頁內容
+  web.encoding = 'UTF-8'
+  soup = BeautifulSoup(web.text, "html.parser")  # 轉換成標籤樹
+  for all_div in soup.find_all('div'): # 找出全部的 div
+    data_id = all_div.get('data-id') # 取出某個欄位的名稱 (若沒找到則為 None)
+    if data_id != None :
+      all_pic_id.append(data_id)
+  return random.choice(all_pic_id)
+
+# 取得 網頁跳轉 之後的網址
+def get_redirect_url(url) :
+  web = requests.get(url)                        # 取得網頁內容
+  return web.url
+
+async def send_drive_image(picture_id = get_random_pic_id(), channel_id = DEFAULT_CHANNEL):
+  to_send_chan = client.get_channel(channel_id)
+  em = discord.Embed()
+  url = "https://drive.google.com/uc?id=" + picture_id
+  url = get_redirect_url(url)
+  em.set_image(url = url)
+  await to_send_chan.send(embed = em)
+
+async def send_file(file_path, channel_id = DEFAULT_CHANNEL):
+  to_send_chan = client.get_channel(channel_id)
+  filename = file_path.split("\\")[-1]
+  dis_file = discord.File(file_path, filename=filename)
+  await to_send_chan.send(file = dis_file)
 
 normal_congrat = [
                   "今天是第 @@ 天交往，寶貝我愛妳~🥰",
