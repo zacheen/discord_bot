@@ -8,9 +8,10 @@ try :
 except FileExistsError :
     pass
 
-class Remind():
-    add_rem = '加入提醒事項:'
-    remove_rem = '刪除提醒事項:'
+from discord.ext import commands
+class Remind(commands.Cog):
+    add_rem = '加入提醒事項'
+    remove_rem = '刪除提醒事項'
     list_rem = '列出提醒事項'
     list_all_rem = '列出全部提醒事項'
     all_command = [add_rem, remove_rem, list_rem, list_all_rem,]
@@ -81,3 +82,38 @@ class Remind():
         info = Remind.read_info(channel)
         del(info[Remind.remind_list_key][tar_indx-1])
         Remind.write_info(channel,info)
+
+    @commands.command(aliases=[add_rem])
+    async def add_remind(self, ctx, to_add_mess = ""):
+        if to_add_mess == "" :
+            await ctx.reply("沒有輸入待加入事項")
+            return 
+        try :
+            Remind.add_item(ctx.channel, to_add_mess)
+            await ctx.reply("成功紀錄 : "+to_add_mess +"\n目前提醒事項 : \n"+ Remind.get_rem(ctx.channel))
+        except :
+            await ctx.reply("加入失敗")
+
+    @commands.command(aliases=[remove_rem])
+    async def remove_remind(self, ctx, remove_idx = ""):
+        if remove_idx == "" :
+            await ctx.reply("沒有輸入待加入事項")
+            return 
+        try :
+            to_remove_mess = int(remove_idx)
+            Remind.del_indx(ctx.channel, to_remove_mess)
+            await ctx.reply("刪除結果 :\n" + Remind.get_rem(ctx.channel))
+        except :
+            await ctx.reply("移除失敗")
+    
+    @commands.command(aliases=[list_rem])
+    async def list_remind(self, ctx):
+        await ctx.reply(Remind.get_rem(ctx.channel))
+    
+    @commands.command(aliases=[list_all_rem])
+    async def list_all_remind(self, ctx):
+        await ctx.reply(Remind.get_all_rem())
+    
+    # @commands.command()
+    # async def help(self, ctx, remove_idx = ""):
+    #     await ctx.reply(Remind.get_help())
