@@ -65,8 +65,11 @@ async def on_ready(): #當機器人完成啟動時
     mem = Bot_status()
     if is_testing : 
         await mem.reset()
-    await bot.add_cog(Remind())
     await bot.add_cog(mem.go_to_sleep)
+    await bot.add_cog(Remind(bot))
+    slash = await bot.tree.sync()
+    print(f"目前登入身份 --> {bot.user}")
+    print(f"載入 {len(slash)} 個斜線指令")
 
 # 因為有使用 command 所以這裡不能夠使用
 # @bot.event
