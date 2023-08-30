@@ -25,6 +25,10 @@ class Greetings(commands.Cog):
         self._last_member = None
     
     # name指令名稱，description指令敘述
+    # 指令還不能超時，且不能 response 兩次
+        # 解決方法
+        # to_send_chan = interaction.channel # 先記錄 channel
+        # await to_send_chan.send(message)   # 再用此 channel 發送訊息
     @app_commands.command(name = "hello", description = "Hello, world!")
     async def hello(self, interaction: discord.Interaction):
         # 回覆使用者的訊息

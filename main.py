@@ -37,6 +37,7 @@ bot = commands.Bot(command_prefix = "$", intents=intents)
 # 最後才 import 自己的 library
 from Remind import Remind
 from My_discord_functions import *
+from util import *
 set_bot(bot)
 
 import datetime as datetimeLib
@@ -55,7 +56,6 @@ class Bot_status(commands.Cog):
 
     async def do_everyday(self):
         await send_anniversary(get_anniversary_days())
-        await send_drive_image()
         self.go_to_sleep.reset_sleep()
 
 @bot.event
@@ -67,9 +67,22 @@ async def on_ready(): #當機器人完成啟動時
         await mem.reset()
     await bot.add_cog(mem.go_to_sleep)
     await bot.add_cog(Remind(bot))
+    await bot.add_cog(Random_pic())
+    await bot.add_cog(All_help())
     slash = await bot.tree.sync()
     print(f"目前登入身份 --> {bot.user}")
     print(f"載入 {len(slash)} 個斜線指令")
+
+class All_help(commands.Cog):
+    @app_commands.command(name = "help_all", description = "列出所有指令")
+    async def help_all(self, interaction: Interaction):
+        all_help_str = "\n".join(get_help(each_func) 
+                for each_func in [Random_pic,Remind])
+        await interaction.response.send_message(all_help_str)
+
+        # all_help_str = "\n".join(each_func.get_help() for each_func in [
+        #     Random_pic,Remind])
+        # await interaction.response.send_message(all_help_str)
 
 # 因為有使用 command 所以這裡不能夠使用
 # @bot.event

@@ -2,6 +2,9 @@ import json
 from glob import glob
 import os
 from discord import app_commands, Interaction
+from discord.ext import commands
+
+from util import *
 
 # 創建 remind 的 json 存放的資料夾 
 try :
@@ -9,22 +12,17 @@ try :
 except FileExistsError :
     pass
 
-from discord.ext import commands
 class Remind(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-    
-    add_rem = ['rem-add','新增提醒事項']
-    remove_rem = ['rem-remove','移除提醒事項']
-    list_rem = ['rem-list','列出此頻道提醒事項']
-    list_all_rem = ['rem-list_all','列出全部提醒事項']
-    all_command = [add_rem, remove_rem, list_rem, list_all_rem,]
-    find_all_file_pattern = os.getenv(r'REMIND_PATH').replace(".txt", "*.txt")
 
-    def get_help():
-        help_str = "目前共有"+str(len(Remind.all_command))+"種指令\n    "
-        help_str += "\n    ".join("/"+each_item[0]+" : "+each_item[1] for each_item in Remind.all_command)
-        return help_str
+    com_name = {
+        "add" : ['rem-add','新增提醒事項'],
+        "remove" : ['rem-remove','移除提醒事項'],
+        "list" : ['rem-list','列出此頻道提醒事項'],
+        "list_all" : ['rem-list_all','列出全部提醒事項'],
+    }
+    find_all_file_pattern = os.getenv(r'REMIND_PATH').replace(".txt", "*.txt")
 
     chan_name_key = "channel_name"
     remind_list_key = "remind_list"
@@ -87,7 +85,7 @@ class Remind(commands.Cog):
         del(info[Remind.remind_list_key][tar_indx-1])
         Remind.write_info(channel,info)
 
-    @app_commands.command(name = add_rem[0], description = add_rem[1])
+    @app_commands.command(name = com_name["add"][0], description = com_name["add"][1])
     @app_commands.describe(mess = "提醒事項")
     async def add_remind(self, interaction: Interaction, mess: str):
         try :
@@ -100,7 +98,7 @@ class Remind(commands.Cog):
         except :
             await interaction.response.send_message("加入失敗")
 
-    @app_commands.command(name = remove_rem[0], description = remove_rem[1])
+    @app_commands.command(name = com_name["remove"][0], description = com_name["remove"][1])
     @app_commands.describe(remove_idx = "移除第幾個")
     async def remove_remind(self, interaction: Interaction, remove_idx: int):
         try :
@@ -109,25 +107,25 @@ class Remind(commands.Cog):
         except :
             await interaction.response.send_message("移除失敗")
     
-    @app_commands.command(name = list_rem[0], description = list_rem[1])
+    @app_commands.command(name = com_name["list"][0], description = com_name["list"][1])
     async def list_remind(self, interaction: Interaction):
         await interaction.response.send_message(Remind.get_rem(interaction.channel))
     
-    @app_commands.command(name = list_all_rem[0], description = list_all_rem[1])
+    @app_commands.command(name = com_name["list_all"][0], description = com_name["list_all"][1])
     async def list_all_remind(self, interaction: Interaction):
         await interaction.response.send_message(Remind.get_all_rem())
     
-    @app_commands.command(name = "help_remind", description = "列出提醒事項的所有指令")
-    async def help_remind(self, interaction: Interaction):
-        await interaction.response.send_message(Remind.get_help())
+    # @app_commands.command(name = "help_remind", description = "列出提醒事項的所有指令")
+    # async def help_remind(self, interaction: Interaction):
+    #     await interaction.response.send_message(get_help(Remind))
 
-    @commands.Cog.listener()
-    async def on_message(self, message):
-        #排除自己的訊息，避免陷入無限循環
-        if message.author == self.bot.user:
-            return
-        if "rem" in message.content and "help" in message.content:
-            await message.reply(Remind.get_help())
+    # @commands.Cog.listener()
+    # async def on_message(self, message):
+    #     #排除自己的訊息，避免陷入無限循環
+    #     if message.author == self.bot.user:
+    #         return
+    #     if "rem" in message.content and "help" in message.content:
+    #         await message.reply(get_help(Remind))
         
 
 async def setup(bot: commands.Bot):

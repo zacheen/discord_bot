@@ -13,6 +13,8 @@ from datetime import datetime
 import pytz
 
 import discord
+from discord import app_commands, Interaction
+from discord.ext import commands
 
 def set_bot(pass_bot):
     global bot
@@ -38,29 +40,53 @@ async def send_file(file_path, channel_id = DEFAULT_CHANNEL):
     await to_send_chan.send(file = dis_file)
 
 # 隨機一張 google drive 裡面的圖片 ###################################
-def get_random_pic_id():
-    all_pic_id = []
-    web = requests.get(DRIVE_PIC_URL)       # 取得網頁內容
-    web.encoding = 'UTF-8'
-    soup = BeautifulSoup(web.text, "html.parser")  # 轉換成標籤樹
-    for all_div in soup.find_all('div'):    # 找出全部的 div
-        data_id = all_div.get('data-id')    # 取出某個欄位的名稱 (若沒找到則為 None)
-        if data_id != None :
-            all_pic_id.append(data_id)
-    return random.choice(all_pic_id)
+class Random_pic(commands.Cog):
+    com_name = {
+        "to" : ["today_pic", "今日圖片"],
+        "ano" : ["another_pic", "再隨機一張圖片"],
+    }
+    
+    def __init__(self):
+        self.today_pic_path = ""
+    
+    @app_commands.command(name = com_name["to"][0], description = com_name["to"][1])
+    async def today_pic(self, interaction: Interaction):
+        await self.send_pic(interaction, False)
 
-# 取得 網頁跳轉 之後的網址
-def get_redirect_url(url):
-    web = requests.get(url)     # 取得網頁內容
-    return web.url
+    @app_commands.command(name = com_name["ano"][0], description = com_name["ano"][1])
+    async def another_pic(self, interaction: Interaction):
+        await self.send_pic(interaction, True)
 
-async def send_drive_image(picture_id = get_random_pic_id(), channel_id = DEFAULT_CHANNEL):
-    to_send_chan = bot.get_channel(channel_id)
-    em = discord.Embed()
-    url = "https://drive.google.com/uc?id=" + picture_id
-    url = get_redirect_url(url)
-    em.set_image(url = url)
-    await to_send_chan.send(embed = em)
+    async def send_pic(self, interaction, force_new = False):
+        to_send_chan = interaction.channel
+        await interaction.response.send_message("OK~")
+        if force_new or self.today_pic_path == "" :
+            self.today_pic_path = "https://drive.google.com/uc?id="+Random_pic.get_random_pic_id()
+        url = Random_pic.get_redirect_url(self.today_pic_path)
+        # await interaction.response.send_message(embed=em) # 運作時間太長
+        await to_send_chan.send(url)
+
+    async def everyday_send_drive_image(self, channel_id = DEFAULT_CHANNEL):
+        self.today_pic_path = "https://drive.google.com/uc?id=" + Random_pic.get_random_pic_id()
+        url = Random_pic.get_redirect_url(self.today_pic_path)
+        to_send_chan = bot.get_channel(channel_id)
+        await to_send_chan.send(url)
+
+    def get_random_pic_id():
+        all_pic_id = []
+        web = requests.get(DRIVE_PIC_URL)       # 取得網頁內容
+        web.encoding = 'UTF-8'
+        soup = BeautifulSoup(web.text, "html.parser")  # 轉換成標籤樹
+        for all_div in soup.find_all('div'):    # 找出全部的 div
+            data_id = all_div.get('data-id')    # 取出某個欄位的名稱 (若沒找到則為 None)
+            if data_id != None :
+                all_pic_id.append(data_id)
+        return random.choice(all_pic_id)
+
+    # 取得 網頁跳轉 之後的網址
+    def get_redirect_url(url):
+        web = requests.get(url)     # 取得網頁內容
+        return web.url
 
 # 每天想說的話 ##################################################
 normal_congrat = [
