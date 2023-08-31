@@ -45,6 +45,7 @@ class Bot_status(commands.Cog):
     def __init__(self):
         self.reset.start()
         self.go_to_sleep = Go_to_sleep(bot)
+        self.random_pic = Random_pic()
 
     # @tasks.loop(seconds=5.0) # 要記得 start 才會開始 loop
     reset_time = datetimeLib.time(hour=2, minute=1, tzinfo=datetimeLib.timezone.utc) # 不能用 pytz 的 timezone 會跳 WARNING !!
@@ -57,6 +58,7 @@ class Bot_status(commands.Cog):
     async def do_everyday(self):
         await send_anniversary(get_anniversary_days())
         self.go_to_sleep.reset_sleep()
+        self.random_pic.reset_pic()
 
 @bot.event
 async def on_ready(): #當機器人完成啟動時
@@ -66,8 +68,8 @@ async def on_ready(): #當機器人完成啟動時
     if is_testing : 
         await mem.reset()
     await bot.add_cog(mem.go_to_sleep)
+    await bot.add_cog(mem.random_pic)
     await bot.add_cog(Remind(bot))
-    await bot.add_cog(Random_pic())
     await bot.add_cog(All_help())
     slash = await bot.tree.sync()
     print(f"目前登入身份 --> {bot.user}")

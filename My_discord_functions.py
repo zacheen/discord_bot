@@ -48,6 +48,9 @@ class Random_pic(commands.Cog):
     
     def __init__(self):
         self.today_pic_path = ""
+
+    def reset_pic(self):
+        self.today_pic_path = ""
     
     @app_commands.command(name = com_name["to"][0], description = com_name["to"][1])
     async def today_pic(self, interaction: Interaction):
@@ -162,6 +165,7 @@ class Go_to_sleep(commands.Cog):
         #排除自己的訊息，避免陷入無限循環
         if message.author == self.bot.user:
             return
+        # 不包含指令
         print(message.author, message.content, message.created_at)
         # 20230615 有更新 id 要注意
         if is_testing or MY_DISCORD_ID not in str(message.author):
