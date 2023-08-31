@@ -57,8 +57,8 @@ class Bot_status(commands.Cog):
 
     async def do_everyday(self):
         await send_anniversary(get_anniversary_days())
+        await self.random_pic.daily_drive_pic()
         self.go_to_sleep.reset_sleep()
-        self.random_pic.reset_pic()
 
 @bot.event
 async def on_ready(): #當機器人完成啟動時

@@ -1,5 +1,7 @@
 settings/remind/*.txt
 test_code.py
+*key.json
+temp_pic.jpeg
 
 #---------------
 # replit 產生的檔案

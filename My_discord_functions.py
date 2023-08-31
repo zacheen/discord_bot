@@ -16,6 +16,12 @@ import discord
 from discord import app_commands, Interaction
 from discord.ext import commands
 
+from util import *
+
+# drive download
+import io
+from googleapiclient.http import MediaIoBaseDownload
+
 def set_bot(pass_bot):
     global bot
     bot = pass_bot
@@ -34,7 +40,10 @@ async def send_embed(url, message, channel_id = DEFAULT_CHANNEL):
     await to_send_chan.send(embed = em)
 
 async def send_file(file_path, channel_id = DEFAULT_CHANNEL):
-    to_send_chan = bot.get_channel(channel_id)
+    if type(channel_id) == int :
+        to_send_chan = bot.get_channel(channel_id)
+    else :
+        to_send_chan = channel_id
     filename = file_path.split("\\")[-1]
     dis_file = discord.File(file_path, filename=filename)
     await to_send_chan.send(file = dis_file)
@@ -42,54 +51,90 @@ async def send_file(file_path, channel_id = DEFAULT_CHANNEL):
 # 隨機一張 google drive 裡面的圖片 ###################################
 class Random_pic(commands.Cog):
     com_name = {
-        "to" : ["today_pic", "今日圖片"],
+        # "to" : ["today_pic", "今日圖片"],
         "ano" : ["another_pic", "再隨機一張圖片"],
     }
+    temp_pic_path = "./temp_pic.jpeg"
     
     def __init__(self):
-        self.today_pic_path = ""
+        self.DRIVE = get_drive_auth()
 
-    def reset_pic(self):
-        self.today_pic_path = ""
+    ## new method ##########################################################
+    def get_random_pic_id(self):
+        results = self.DRIVE.files().list(
+            q = "mimeType='image/jpeg'",    # 搜尋條件
+            fields="files(id, name)" #限制回傳的欄位
+        ).execute()
+
+        all_pic = results.get('files', [])
+        print("random pic", random.choice(all_pic)["id"])
+        return random.choice(all_pic)["id"]
     
-    @app_commands.command(name = com_name["to"][0], description = com_name["to"][1])
-    async def today_pic(self, interaction: Interaction):
-        await self.send_pic(interaction, False)
+    def download_from_drive(self, file_id):
+        request = self.DRIVE.files().get_media(fileId=file_id)
+        file = io.BytesIO()
+        downloader = MediaIoBaseDownload(file, request)
+        done = False
+        while done is False:
+            status, done = downloader.next_chunk()
+        download_byte = file.getvalue()
+        
+        with open(Random_pic.temp_pic_path, "wb") as fw : 
+            fw.write(download_byte)
 
+    async def daily_drive_pic(self):
+        self.download_from_drive(self.get_random_pic_id())
+        await send_file(Random_pic.temp_pic_path)
+    
     @app_commands.command(name = com_name["ano"][0], description = com_name["ano"][1])
-    async def another_pic(self, interaction: Interaction):
-        await self.send_pic(interaction, True)
-
-    async def send_pic(self, interaction, force_new = False):
+    async def another_pic(self, interaction):
         to_send_chan = interaction.channel
         await interaction.response.send_message("OK~")
-        if force_new or self.today_pic_path == "" :
-            self.today_pic_path = "https://drive.google.com/uc?id="+Random_pic.get_random_pic_id()
-        url = Random_pic.get_redirect_url(self.today_pic_path)
-        # await interaction.response.send_message(embed=em) # 運作時間太長
-        await to_send_chan.send(url)
+        self.download_from_drive(self.get_random_pic_id())
+        await send_file(Random_pic.temp_pic_path, to_send_chan)
 
-    async def everyday_send_drive_image(self, channel_id = DEFAULT_CHANNEL):
-        self.today_pic_path = "https://drive.google.com/uc?id=" + Random_pic.get_random_pic_id()
-        url = Random_pic.get_redirect_url(self.today_pic_path)
-        to_send_chan = bot.get_channel(channel_id)
-        await to_send_chan.send(url)
+    ## old method ##########################################################
+    # def reset_pic(self):
+    #     self.today_pic_path = ""
+    
+    # @app_commands.command(name = com_name["to"][0], description = com_name["to"][1])
+    # async def today_pic(self, interaction: Interaction):
+    #     await self.send_pic(interaction, False)
 
-    def get_random_pic_id():
-        all_pic_id = []
-        web = requests.get(DRIVE_PIC_URL)       # 取得網頁內容
-        web.encoding = 'UTF-8'
-        soup = BeautifulSoup(web.text, "html.parser")  # 轉換成標籤樹
-        for all_div in soup.find_all('div'):    # 找出全部的 div
-            data_id = all_div.get('data-id')    # 取出某個欄位的名稱 (若沒找到則為 None)
-            if data_id != None :
-                all_pic_id.append(data_id)
-        return random.choice(all_pic_id)
+    # @app_commands.command(name = com_name["ano"][0], description = com_name["ano"][1])
+    # async def another_pic(self, interaction: Interaction):
+    #     await self.send_pic(interaction, True)
+    
+    # async def send_pic(self, interaction, force_new = False):
+    #     to_send_chan = interaction.channel
+    #     await interaction.response.send_message("OK~")
+    #     if force_new or self.today_pic_path == "" :
+    #         self.today_pic_path = "https://drive.google.com/uc?id="+Random_pic.get_random_pic_id()
+    #     url = Random_pic.get_redirect_url(self.today_pic_path)
+    #     # await interaction.response.send_message(embed=em) # 運作時間太長
+    #     await to_send_chan.send(url)
 
-    # 取得 網頁跳轉 之後的網址
-    def get_redirect_url(url):
-        web = requests.get(url)     # 取得網頁內容
-        return web.url
+    # async def everyday_send_drive_image(self, channel_id = DEFAULT_CHANNEL):
+    #     self.today_pic_path = "https://drive.google.com/uc?id=" + Random_pic.get_random_pic_id()
+    #     url = Random_pic.get_redirect_url(self.today_pic_path)
+    #     to_send_chan = bot.get_channel(channel_id)
+    #     await to_send_chan.send(url)
+
+    # def get_random_pic_id():
+    #     all_pic_id = []
+    #     web = requests.get(DRIVE_PIC_URL)       # 取得網頁內容
+    #     web.encoding = 'UTF-8'
+    #     soup = BeautifulSoup(web.text, "html.parser")  # 轉換成標籤樹
+    #     for all_div in soup.find_all('div'):    # 找出全部的 div
+    #         data_id = all_div.get('data-id')    # 取出某個欄位的名稱 (若沒找到則為 None)
+    #         if data_id != None :
+    #             all_pic_id.append(data_id)
+    #     return random.choice(all_pic_id)
+
+    # # 取得 網頁跳轉 之後的網址
+    # def get_redirect_url(url):
+    #     web = requests.get(url)     # 取得網頁內容
+    #     return web.url
 
 # 每天想說的話 ##################################################
 normal_congrat = [
