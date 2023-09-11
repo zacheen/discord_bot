@@ -8,6 +8,7 @@
 # pip install pytz
 # pip install requests
 # pip install beautifulsoup4
+# pip install --upgrade google-api-python-client google-auth-httplib2 google-auth-oauthlib oauth2client
 
 import discord
 # 一些常用 function 整理

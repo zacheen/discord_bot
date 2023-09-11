@@ -1,9 +1,7 @@
 import os
 DEFAULT_CHANNEL = int(os.getenv(r'DEFAULT_CHANNEL'))
-print("DEFAULT_CHANNEL :", DEFAULT_CHANNEL)
-DRIVE_PIC_URL = os.getenv(r'GOOGLE_DRIVE_PIC_URL')
+# DRIVE_PIC_URL = os.getenv(r'GOOGLE_DRIVE_PIC_URL')
 is_testing = os.getenv(r'TESTING') != None
-print("is_testing :",is_testing)
 
 import requests
 from bs4 import BeautifulSoup
@@ -60,6 +58,7 @@ class Random_pic(commands.Cog):
         self.DRIVE = get_drive_auth()
 
     ## new method ##########################################################
+    ## 透過 google auth 跟 API，直接下載圖片，再上傳到discord
     def get_random_pic_id(self):
         results = self.DRIVE.files().list(
             q = "mimeType='image/jpeg'",    # 搜尋條件
@@ -67,7 +66,6 @@ class Random_pic(commands.Cog):
         ).execute()
 
         all_pic = results.get('files', [])
-        print("random pic", random.choice(all_pic)["id"])
         return random.choice(all_pic)["id"]
     
     def download_from_drive(self, file_id):
@@ -94,6 +92,7 @@ class Random_pic(commands.Cog):
         await send_file(Random_pic.temp_pic_path, to_send_chan)
 
     ## old method ##########################################################
+    ## 把資料夾的權限調成"知道連結的任何人 可檢視"，再產出連結導到預覽畫面
     # def reset_pic(self):
     #     self.today_pic_path = ""
     
