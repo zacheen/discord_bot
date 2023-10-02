@@ -210,7 +210,7 @@ class Go_to_sleep(commands.Cog):
         if message.author == self.bot.user:
             return
         # 不包含指令
-        print(message.author, message.content, message.created_at)
+        # print(message.author, message.content, message.created_at)
         # 20230615 有更新 id 要注意
         if is_testing or MY_DISCORD_ID not in str(message.author):
         # if "zacheen" in str(message.author):
