@@ -6,7 +6,11 @@
 
 1. 在 GCP 的 us-central1 建立一台 e2-micro，搭配 30GB 以內的標準磁碟，這樣會落在 Always Free 額度內。
 2. 在 VM 上把兩個 repo 都 clone 下來，再把 `discord_bot_secret/settings/` 複製到 `discord_bot/settings/`。
-3. 到 Discord Developer Portal 的 Bot 頁面按 Reset Token，把新 token 填進 `settings/.env` 的 `DISCORD_TOKEN`。
+3. 重新產生 Discord token，填進 `settings/.env` 的 `DISCORD_TOKEN`。
+   - 登入 https://discord.com/developers/applications ，點進這個 bot 的應用程式。應用程式名稱寫在 `discord_bot_secret` 的 README。
+   - 左側選 Bot，在 Token 區塊按 Reset Token，再按確認。
+   - Discord 會要求帳號的兩步驟驗證，輸入驗證碼後新 token 才會出現。
+   - token 只會顯示這一次，離開頁面就看不到了，要立刻複製。舊 token 會同時失效。
 4. 到 GCP 的 IAM 頁面替讀取 Google Drive 的 service account 建立新金鑰，放到 `settings/`，並把路徑填進 `GOOGLE_AUTH_KEY_PATH`。
 5. 用 Python 3.10 以上安裝套件並啟動。
 
