@@ -94,24 +94,33 @@ class Remind(commands.Cog):
     async def add_remind(self, interaction: Interaction, mess: str):
         try :
             Remind.add_item(interaction.channel, mess)
-            await interaction.response.send_message(
-                "成功紀錄 : "+mess+"\n"+
-                "目前提醒事項 : \n"+ 
-                Remind.get_rem(interaction.channel)
-                )
         except (OSError, ValueError) as e :
-            await interaction.response.send_message(f"加入失敗 : {e}")
+            # OSError text carries the absolute file path, so it goes to the log rather than the channel.
+            print("rem-add failed :", repr(e))
+            await interaction.response.send_message("加入失敗，原因寫在 bot.log")
+            return
+        await interaction.response.send_message(
+            "成功紀錄 : "+mess+"\n"+
+            "目前提醒事項 : \n"+
+            Remind.get_rem(interaction.channel)
+            )
 
     @app_commands.command(name = com_name["remove"][0], description = com_name["remove"][1])
     @app_commands.describe(remove_idx = "移除第幾個")
     async def remove_remind(self, interaction: Interaction, remove_idx: int):
         try :
             Remind.del_indx(interaction.channel, remove_idx)
-            await interaction.response.send_message("刪除結果 :\n" + Remind.get_rem(interaction.channel))
         except FileNotFoundError :
             await interaction.response.send_message("移除失敗 : 這個頻道沒有提醒事項，請到建立提醒的頻道執行，/rem-list_all 可以看提醒在哪個頻道")
-        except (IndexError, OSError, ValueError) as e :
+            return
+        except IndexError as e :
             await interaction.response.send_message(f"移除失敗 : {e}")
+            return
+        except (OSError, ValueError) as e :
+            print("rem-remove failed :", repr(e))
+            await interaction.response.send_message("移除失敗，原因寫在 bot.log")
+            return
+        await interaction.response.send_message("刪除結果 :\n" + Remind.get_rem(interaction.channel))
     
     @app_commands.command(name = com_name["list"][0], description = com_name["list"][1])
     async def list_remind(self, interaction: Interaction):
