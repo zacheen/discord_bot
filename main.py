@@ -1,7 +1,6 @@
 # coding:utf-8
 
 # python version 3.10 (python 3.7 無法安裝 discord 2.3.0 版)
-# Dependencies are listed in requirements.txt
 
 import discord
 # 一些常用 function 整理
