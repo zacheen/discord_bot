@@ -10,7 +10,10 @@ def get_help(command_class):
 
 from oauth2client.service_account import ServiceAccountCredentials
 from googleapiclient.discovery import build
-# google auth 
+# google auth
+def has_drive_key():
+    return bool(GOOGLE_AUTH_KEY_PATH) and os.path.isfile(GOOGLE_AUTH_KEY_PATH)
+
 def get_drive_auth() :
     scope = ['https://www.googleapis.com/auth/drive']
     creds = ServiceAccountCredentials.from_json_keyfile_name(GOOGLE_AUTH_KEY_PATH, scope)

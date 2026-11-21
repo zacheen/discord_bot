@@ -44,9 +44,14 @@ set_bot(bot)
 import datetime as datetimeLib
 class Bot_status(commands.Cog):
     def __init__(self):
-        self.reset.start()
         self.go_to_sleep = Go_to_sleep(bot)
-        self.random_pic = Random_pic()
+        # Random_pic authenticates in its constructor, so a missing key would abort on_ready before any cog loads.
+        if has_drive_key():
+            self.random_pic = Random_pic()
+        else:
+            print("Google key not found, Drive picture commands disabled")
+            self.random_pic = None
+        self.reset.start()
 
     # @tasks.loop(seconds=5.0) # 要記得 start 才會開始 loop
     reset_time = datetimeLib.time(hour=2, minute=1, tzinfo=datetimeLib.timezone.utc) # 不能用 pytz 的 timezone 會跳 WARNING !!
@@ -58,8 +63,10 @@ class Bot_status(commands.Cog):
 
     async def do_everyday(self):
         await send_anniversary(get_anniversary_days())
-        await self.random_pic.daily_drive_pic()
+        # Reset first so a Drive error below cannot leave the sleep reminders muted.
         self.go_to_sleep.reset_sleep()
+        if self.random_pic:
+            await self.random_pic.daily_drive_pic()
 
 @bot.event
 async def on_ready(): #當機器人完成啟動時
@@ -69,7 +76,8 @@ async def on_ready(): #當機器人完成啟動時
     if is_testing : 
         await mem.reset()
     await bot.add_cog(mem.go_to_sleep)
-    await bot.add_cog(mem.random_pic)
+    if mem.random_pic:
+        await bot.add_cog(mem.random_pic)
     await bot.add_cog(Remind(bot))
     await bot.add_cog(All_help())
     slash = await bot.tree.sync()
@@ -79,8 +87,8 @@ async def on_ready(): #當機器人完成啟動時
 class All_help(commands.Cog):
     @app_commands.command(name = "help_all", description = "列出所有指令")
     async def help_all(self, interaction: Interaction):
-        all_help_str = "\n".join(get_help(each_func) 
-                for each_func in [Random_pic,Remind])
+        loaded = [Random_pic, Remind] if mem.random_pic else [Remind]
+        all_help_str = "\n".join(get_help(each_func) for each_func in loaded)
         await interaction.response.send_message(all_help_str)
 
         # all_help_str = "\n".join(each_func.get_help() for each_func in [
