@@ -71,15 +71,18 @@ async def on_ready(): #當機器人完成啟動時
     if mem.random_pic:
         await bot.add_cog(mem.random_pic)
     await bot.add_cog(Remind(bot))
-    await bot.add_cog(All_help())
+    await bot.add_cog(All_help(bot))
     slash = await bot.tree.sync()
     print(f"目前登入身份 --> {bot.user}")
     print(f"載入 {len(slash)} 個斜線指令")
 
 class All_help(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
+
     @app_commands.command(name = "help_all", description = "列出所有指令")
     async def help_all(self, interaction: Interaction):
-        loaded = [Random_pic, Remind] if mem.random_pic else [Remind]
+        loaded = [type(c) for c in self.bot.cogs.values() if hasattr(c, "com_name")]
         all_help_str = "\n".join(get_help(each_func) for each_func in loaded)
         await interaction.response.send_message(all_help_str)
 
