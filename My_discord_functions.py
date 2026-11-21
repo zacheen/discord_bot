@@ -162,8 +162,9 @@ async def send_anniversary(anniversary_days):
     else :
         await send_message(random.choice(normal_congrat).replace("@@", str(anniversary_days)))
 
+ANNIVERSARY = os.getenv(r'ANNIVERSARY')
 def get_anniversary_days():
-    anniversary = datetime.strptime("2023 03 08 20:00:00 +0800", "%Y %m %d %H:%M:%S %z")  # 這個日期格式不要加上時區
+    anniversary = datetime.strptime(ANNIVERSARY, "%Y %m %d %H:%M:%S %z")
     anniversary_days = (datetime.now(pytz.timezone("Asia/Taipei")) - anniversary).days + 1
     return anniversary_days
 
