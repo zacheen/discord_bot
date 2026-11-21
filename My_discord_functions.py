@@ -174,10 +174,10 @@ async def send_anniversary(anniversary_days):
     else :
         await send_message(random.choice(normal_congrat).replace("@@", str(anniversary_days)))
 
-ANNIVERSARY = os.getenv(r'ANNIVERSARY')
+# Parsed at import so a missing or malformed value fails at startup, not at the daily run.
+ANNIVERSARY = datetime.strptime(os.environ[r'ANNIVERSARY'], "%Y %m %d %H:%M:%S %z")
 def get_anniversary_days():
-    anniversary = datetime.strptime(ANNIVERSARY, "%Y %m %d %H:%M:%S %z")
-    anniversary_days = (datetime.now(pytz.timezone("Asia/Taipei")) - anniversary).days + 1
+    anniversary_days = (datetime.now(pytz.timezone("Asia/Taipei")) - ANNIVERSARY).days + 1
     return anniversary_days
 
 # go to sleep! ##################################################
