@@ -82,7 +82,11 @@ class Remind(commands.Cog):
 
     def del_indx(channel, tar_indx): # indx start : 1
         info = Remind.read_info(channel)
-        del(info[Remind.remind_list_key][tar_indx-1])
+        remind_list = info[Remind.remind_list_key]
+        # Without this check 0 or a negative number would delete from the end of the list.
+        if not 1 <= tar_indx <= len(remind_list):
+            raise IndexError(f"這個頻道目前有 {len(remind_list)} 筆提醒，編號 {tar_indx} 不存在")
+        del(remind_list[tar_indx-1])
         Remind.write_info(channel,info)
 
     @app_commands.command(name = com_name["add"][0], description = com_name["add"][1])
@@ -95,8 +99,8 @@ class Remind(commands.Cog):
                 "目前提醒事項 : \n"+ 
                 Remind.get_rem(interaction.channel)
                 )
-        except :
-            await interaction.response.send_message("加入失敗")
+        except (OSError, ValueError) as e :
+            await interaction.response.send_message(f"加入失敗 : {e}")
 
     @app_commands.command(name = com_name["remove"][0], description = com_name["remove"][1])
     @app_commands.describe(remove_idx = "移除第幾個")
@@ -104,8 +108,10 @@ class Remind(commands.Cog):
         try :
             Remind.del_indx(interaction.channel, remove_idx)
             await interaction.response.send_message("刪除結果 :\n" + Remind.get_rem(interaction.channel))
-        except :
-            await interaction.response.send_message("移除失敗")
+        except FileNotFoundError :
+            await interaction.response.send_message("移除失敗 : 這個頻道沒有提醒事項，請到建立提醒的頻道執行，/rem-list_all 可以看提醒在哪個頻道")
+        except (IndexError, OSError, ValueError) as e :
+            await interaction.response.send_message(f"移除失敗 : {e}")
     
     @app_commands.command(name = com_name["list"][0], description = com_name["list"][1])
     async def list_remind(self, interaction: Interaction):
