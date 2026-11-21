@@ -57,6 +57,18 @@ class Random_pic(commands.Cog):
     def __init__(self):
         self.DRIVE = get_drive_auth()
 
+    @classmethod
+    def try_create(cls):
+        # Returns None instead of raising, because the constructor runs inside on_ready and an error there stops every cog from loading.
+        if not has_drive_key():
+            print("Google key not found, Drive picture commands disabled")
+            return None
+        try:
+            return cls()
+        except (OSError, ValueError, KeyError) as e:
+            print("Google key unusable, Drive picture commands disabled :", repr(e))
+            return None
+
     ## new method ##########################################################
     ## 透過 google auth 跟 API，直接下載圖片，再上傳到discord
     def get_random_pic_id(self):

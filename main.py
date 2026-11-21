@@ -38,12 +38,7 @@ import datetime as datetimeLib
 class Bot_status(commands.Cog):
     def __init__(self):
         self.go_to_sleep = Go_to_sleep(bot)
-        # Random_pic authenticates in its constructor, so a missing key would abort on_ready before any cog loads.
-        if has_drive_key():
-            self.random_pic = Random_pic()
-        else:
-            print("Google key not found, Drive picture commands disabled")
-            self.random_pic = None
+        self.random_pic = Random_pic.try_create()
         self.reset.start()
 
     # @tasks.loop(seconds=5.0) # 要記得 start 才會開始 loop
@@ -55,11 +50,15 @@ class Bot_status(commands.Cog):
         print("reset finish")
 
     async def do_everyday(self):
-        await send_anniversary(get_anniversary_days())
-        # Reset first so a Drive error below cannot leave the sleep reminders muted.
+        # Reset first so a failure below cannot leave the sleep reminders muted.
         self.go_to_sleep.reset_sleep()
+        await send_anniversary(get_anniversary_days())
         if self.random_pic:
-            await self.random_pic.daily_drive_pic()
+            try:
+                await self.random_pic.daily_drive_pic()
+            except Exception as e:
+                # tasks.loop stops for good on an unhandled error, which would also end the daily anniversary message.
+                print("daily Drive picture failed :", repr(e))
 
 @bot.event
 async def on_ready(): #當機器人完成啟動時
