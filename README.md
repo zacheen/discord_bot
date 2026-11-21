@@ -11,7 +11,7 @@
 5. 用 Python 3.10 以上安裝套件並啟動。
 
 ```
-pip install -U discord.py python-dotenv apscheduler Flask pytz requests beautifulsoup4 google-api-python-client google-auth-httplib2 google-auth-oauthlib oauth2client
+pip install -U -r requirements.txt
 nohup python3 -u main.py > bot.log 2>&1 &
 ```
 
