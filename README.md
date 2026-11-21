@@ -25,6 +25,10 @@ nohup python3 -u main.py > bot.log 2>&1 &
 
 不用的時候直接刪除 VM，不要只停機或暫停。暫停狀態的 RAM 會計費，而 `/rem-add` 新增的提醒事項記得先複製回 `discord_bot_secret` 再刪。
 
+刪除 VM 後，讓用過的憑證失效。
+- Discord 沒有刪除 token 的功能。到 Bot 頁面再按一次 Reset Token，舊 token 就會失效，新產生的 token 不用複製，直接離開頁面。
+- 到 GCP 的 IAM 頁面刪除這次替 service account 建立的金鑰。
+
 ------------------------------------------------------
 << 別人的 readme >>
 
