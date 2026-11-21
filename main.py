@@ -112,7 +112,6 @@ class All_help(commands.Cog):
 #     pass
 
 TOKEN = os.getenv(r'TOKEN')
-print("TOKEN :", TOKEN)
 # import keep_alive
 # keep_alive.keep_alive()
 bot.run(TOKEN)

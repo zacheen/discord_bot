@@ -12,8 +12,10 @@
 
 ```
 pip install -U discord.py python-dotenv apscheduler Flask pytz requests beautifulsoup4 google-api-python-client google-auth-httplib2 google-auth-oauthlib oauth2client
-nohup python3 main.py > bot.log 2>&1 &
+nohup python3 -u main.py > bot.log 2>&1 &
 ```
+
+`-u` 讓 `print` 立刻寫進 `bot.log`，才看得到登入身份與載入了幾個斜線指令。
 
 `settings/.env` 不要加 `TESTING`，否則 bot 一上線就會立刻發送紀念日訊息與圖片。
 
